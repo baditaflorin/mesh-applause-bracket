@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
 import {
   Leaderboard,
+  MeshNameInput,
+  MeshProgressBar,
   createClockSync,
   useEventLog,
   useMeshSlot,
@@ -151,15 +153,13 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
         </p>
       </header>
 
-      <div className="clap-name">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="your name"
-          maxLength={48}
-          aria-label="your name"
-        />
-      </div>
+      <MeshNameInput
+        className="clap-name"
+        value={name}
+        onChange={setName}
+        placeholder="your name"
+        maxLength={48}
+      />
 
       {ph.phase === "lobby" && (
         <button type="button" className="clap-start" onClick={startContest}>
@@ -194,9 +194,7 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
       )}
 
       {ph.phase === "round" && (
-        <div className="clap-progress" aria-hidden="true">
-          <div className="clap-progress-fill" style={{ width: `${slot.progress * 100}%` }} />
-        </div>
+        <MeshProgressBar value={slot.progress} className="clap-progress" size="sm" />
       )}
 
       {elimMap.size > 0 && (
