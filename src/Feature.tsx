@@ -4,10 +4,12 @@ import {
   MeshNameInput,
   MeshProgressBar,
   createClockSync,
+  safeJson,
   useEventLog,
   useMeshSlot,
   useNamedPeer,
   usePhase,
+  useXP,
   type MeshConfig,
   type YRoom,
 } from "@baditaflorin/mesh-common";
@@ -32,6 +34,7 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
   const { name, setName, names, myName } = useNamedPeer(config, room);
   const ph = usePhase<Phase>(room, "phase", "lobby");
   const log = useEventLog<Clap>(room, "claps");
+  const xp = useXP(room, "claps:xp");
 
   const clock = useMemo(() => (room ? createClockSync(room.provider) : null), [room]);
   useEffect(() => () => clock?.destroy(), [clock]);
@@ -49,7 +52,13 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
   }, [elimMap]);
 
   const contestantsRaw = phaseMap.get("contestants") as string | undefined;
-  const contestants: string[] = contestantsRaw ? JSON.parse(contestantsRaw) : [];
+  const contestantsParsed = contestantsRaw
+    ? safeJson<string[]>(contestantsRaw, { maxBytes: 32_000, maxDepth: 3 })
+    : null;
+  const contestants: string[] =
+    contestantsParsed && contestantsParsed.ok && Array.isArray(contestantsParsed.value)
+      ? contestantsParsed.value
+      : [];
   const baselineSlot = (phaseMap.get("baselineSlot") as number | undefined) ?? slot.slotId;
   const currentRound = Math.max(0, slot.slotId - baselineSlot);
 
@@ -110,14 +119,17 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
     if (!alive.includes(target)) return;
     if (target === myName) return;
     log.push({ round: currentRound, peerId: room.peerId, target, ts: Date.now() });
+    xp.awardTo(target, 1);
   };
 
+  const xpMap = room.doc.getMap<number>("claps:xp");
   const reset = () => {
     room.doc.transact(() => {
       phaseMap.delete("contestants");
       phaseMap.delete("baselineSlot");
       elimMap.forEach((_v, k) => elimMap.delete(k));
       log.clear();
+      xpMap.forEach((_v, k) => xpMap.delete(k));
     });
     ph.transition("lobby");
   };
@@ -129,12 +141,10 @@ function Body({ room, config }: { room: YRoom; config: MeshConfig }) {
       roundCounts.set(c.target, (roundCounts.get(c.target) ?? 0) + 1);
     }
   }
-  // cumulative for leaderboard
-  const totals = new Map<string, number>();
-  for (const c of log.events) totals.set(c.target, (totals.get(c.target) ?? 0) + 1);
-  const items = [...totals.entries()]
-    .map(([n, score]) => ({ id: n, name: n, score }))
-    .sort((a, b) => b.score - a.score);
+  // cumulative for leaderboard via useXP
+  const items = xp
+    .leaderboard()
+    .map((entry) => ({ id: entry.peerId, name: entry.peerId, score: entry.xp }));
 
   const winner = ph.phase === "done" ? alive[0] : undefined;
   const present = room.peerCount + 1;
