@@ -1,6 +1,6 @@
 {
   "name": "mesh-applause-bracket",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tap-applause single-elimination popularity contest. Lowest claps each round is out.",
   "type": "module",
   "private": false,
@@ -43,6 +43,7 @@
     "@playwright/test": "^1.50.0",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.0",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",

@@ -1,7 +1,7 @@
 # mesh-applause-bracket
 
 [![pages](https://img.shields.io/badge/live-baditaflorin.github.io%2Fmesh-applause-bracket-ff944d)](https://baditaflorin.github.io/mesh-applause-bracket/)
-[![version](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/baditaflorin/mesh-applause-bracket/blob/main/package.json)
+[![version](https://img.shields.io/badge/version-0.1.1-blue)](https://github.com/baditaflorin/mesh-applause-bracket/blob/main/package.json)
 [![license](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 > Tap-applause single-elimination popularity contest. Lowest claps each round is out.
